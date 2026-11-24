@@ -1,0 +1,14 @@
+name: build
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install cmake ninja meson
+      - run: python3 scripts/build.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dylix-ipa
+          path: build/*.ipa
