@@ -20,7 +20,7 @@ static NSString *RunProgressOutcome(NSDictionary *call,NSDictionary *value){
  if([call[@"name"] isEqual:@"read_context"]){
   // A different result: ID must not turn the same historical page into new evidence.
   id page=value;
-  for(NSUInteger i=0;i<32&&[page isKindOfClass:NSDictionary.class]&&[page[@"historical"] boolValue]&&[page[@"text"] isKindOfClass:NSString.class];i++){
+  for(NSUInteger i=0;i<32&&[page isKindOfClass:NSDictionary.class]&&([page[@"historical"] isKindOfClass:NSNumber.class]&&[page[@"historical"] boolValue])&&[page[@"text"] isKindOfClass:NSString.class];i++){
    NSString *text=page[@"text"];id decoded=[NSJSONSerialization JSONObjectWithData:[text dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingFragmentsAllowed error:nil];page=decoded?:text;
   }
   stable=RunProgressStable(page);
