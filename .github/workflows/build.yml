@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 180
     env:
       DYLIX_SDK_26_0: ${{ github.workspace }}/LocalSDKs/iPhoneOS26.0.sdk
