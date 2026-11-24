@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: brew install cmake ninja meson
+      - run: python3 scripts/fetch_toolchain.py
       - run: python3 scripts/build.py
       - uses: actions/upload-artifact@v4
         with:
