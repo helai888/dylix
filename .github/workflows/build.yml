@@ -7,10 +7,10 @@ jobs:
     timeout-minutes: 180
     env:
       DYLIX_SDK_26_0: ${{ github.workspace }}/LocalSDKs/iPhoneOS26.0.sdk
-      DYLIX_LLD: /opt/homebrew/opt/llvm/bin/ld.lld
+      DYLIX_LLD: /opt/homebrew/opt/lld/bin/ld.lld
     steps:
       - uses: actions/checkout@v4
-      - run: brew install cmake ninja meson llvm
+      - run: brew install cmake ninja meson llvm lld
       - run: rustup target add aarch64-apple-ios
       - run: python3 scripts/fetch_toolchain.py
       - run: python3 scripts/build.py
