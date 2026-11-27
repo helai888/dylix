@@ -1,4 +1,5 @@
 #import "GlassSupport.h"
+#import "DXTheme.h"
 #import <objc/message.h>
 UIVisualEffect *TMCGlassEffect(BOOL interactive){
  if(UIAccessibilityIsReduceTransparencyEnabled())return nil;
@@ -9,14 +10,18 @@ UIVisualEffect *TMCGlassEffect(BOOL interactive){
  return [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
 }
 UIButtonConfiguration *TMCButtonConfiguration(BOOL prominent){
+ UIButtonConfiguration *configuration=nil;
  if(@available(iOS 26.0,*))if(!UIAccessibilityIsReduceTransparencyEnabled()){
   SEL factory=NSSelectorFromString(prominent?@"prominentGlassButtonConfiguration":@"glassButtonConfiguration");
-  if([UIButtonConfiguration respondsToSelector:factory])return ((id(*)(id,SEL))objc_msgSend)(UIButtonConfiguration.class,factory);
+  if([UIButtonConfiguration respondsToSelector:factory])configuration=((id(*)(id,SEL))objc_msgSend)(UIButtonConfiguration.class,factory);
  }
- return prominent?UIButtonConfiguration.filledButtonConfiguration:UIButtonConfiguration.tintedButtonConfiguration;
+ if(!configuration)configuration=prominent?UIButtonConfiguration.filledButtonConfiguration:UIButtonConfiguration.tintedButtonConfiguration;
+ if(prominent){configuration.baseBackgroundColor=DXBrandColor();configuration.baseForegroundColor=UIColor.whiteColor;}
+ else configuration.baseForegroundColor=DXBrandColor();
+ return configuration;
 }
 UINavigationBarAppearance *TMCTransparentChatBarAppearance(void){
- UINavigationBarAppearance *bar=[UINavigationBarAppearance new];[bar configureWithTransparentBackground];bar.backgroundEffect=nil;bar.backgroundColor=UIColor.clearColor;bar.shadowColor=UIColor.clearColor;bar.titleTextAttributes=@{NSForegroundColorAttributeName:UIColor.labelColor};bar.largeTitleTextAttributes=@{NSForegroundColorAttributeName:UIColor.labelColor};return bar;
+ UINavigationBarAppearance *bar=[UINavigationBarAppearance new];[bar configureWithTransparentBackground];bar.backgroundEffect=nil;bar.backgroundColor=UIColor.clearColor;bar.shadowColor=UIColor.clearColor;bar.titleTextAttributes=@{NSForegroundColorAttributeName:DXLabelColor()};bar.largeTitleTextAttributes=@{NSForegroundColorAttributeName:DXLabelColor()};return bar;
 }
 // UINavigationBar owns its glass and scroll-edge rendering. Never insert an
 // effect view into the system bar: its internal layering changes across iOS.
@@ -44,6 +49,6 @@ static void NavigationTrace(NSString *message){static dispatch_queue_t queue;sta
 - (void)viewDidLoad{
  [super viewDidLoad];[self applyStudioAppearance];[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appearancePreferenceChanged:) name:NSUserDefaultsDidChangeNotification object:nil];
  // Semantic foreground stays legible in light/dark appearance and sheets.
- self.navigationBar.tintColor=UIColor.labelColor;
+ self.navigationBar.tintColor=DXBrandColor();
 }
 @end
