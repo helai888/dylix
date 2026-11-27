@@ -2,6 +2,7 @@
 #import "TFAIDirectoryPickerDiagnostics.h"
 #import "TFAIAttachmentStore.h"
 #import "../UI/TFAIUIHelpers.h"
+#import "../../DXTheme.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <objc/runtime.h>
 static char FolderDelegateLifetime;
@@ -26,7 +27,7 @@ static char FolderDelegateLifetime;
   NSString *root=[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES).firstObject stringByAppendingPathComponent:@"DylixDiagnostics"];
   for(NSString *name in @[@"FolderPicker",@"file-ui.log"])[NSFileManager.defaultManager removeItemAtPath:[root stringByAppendingPathComponent:name] error:nil];
  });
-self.title=self.entry?(self.relative.length?self.relative.lastPathComponent:self.entry[@"path"]):@"挂载文件夹";self.tableView.accessibilityIdentifier=@"authorized-directories";self.tableView.rowHeight=UITableViewAutomaticDimension;self.tableView.estimatedRowHeight=60;if(!self.entry){
+self.title=self.entry?(self.relative.length?self.relative.lastPathComponent:self.entry[@"path"]):@"挂载文件夹";self.tableView.accessibilityIdentifier=@"authorized-directories";self.tableView.rowHeight=UITableViewAutomaticDimension;self.tableView.estimatedRowHeight=60;DXStyleTableAsCards(self.tableView);if(!self.entry){
  __weak typeof(self) weakSelf=self;UIBarButtonItem *more=[[UIBarButtonItem alloc]initWithImage:[UIImage systemImageNamed:@"ellipsis.circle"] menu:[UIMenu menuWithTitle:@"文件夹授权" children:@[
  [UIAction actionWithTitle:@"独立窗口选择文件夹" image:[UIImage systemImageNamed:@"checkmark.circle"] identifier:nil handler:^(UIAction *a){[weakSelf chooseFolderCompatible:YES];}],
  [UIAction actionWithTitle:@"授权诊断" image:[UIImage systemImageNamed:@"doc.text.magnifyingglass"] identifier:nil handler:^(UIAction *a){[weakSelf showFolderDiagnostics];}]]]];
@@ -108,7 +109,7 @@ self.title=self.entry?(self.relative.length?self.relative.lastPathComponent:self
   UIWindow *previous=self.view.window;self.previousKeyWindow=previous;
   UIWindow *window=previous.windowScene?[[UIWindow alloc]initWithWindowScene:previous.windowScene]:[[UIWindow alloc]initWithFrame:previous.bounds];
   window.frame=previous.bounds;window.windowLevel=previous.windowLevel+1;window.tintColor=previous.tintColor;
-  UIViewController *host=[UIViewController new];host.view.backgroundColor=UIColor.systemBackgroundColor;window.rootViewController=host;self.pickerWindow=window;
+  UIViewController *host=[UIViewController new];host.view.backgroundColor=DXBackgroundColor();window.rootViewController=host;self.pickerWindow=window;
   [window makeKeyAndVisible];
   dispatch_async(dispatch_get_main_queue(),^{if(self.folderPicker==picker)[host presentViewController:picker animated:YES completion:^{}];});
  }else [self presentViewController:picker animated:YES completion:^{}];
