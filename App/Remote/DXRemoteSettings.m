@@ -2,6 +2,7 @@
 #import "DXFlexPluginInfo.h"
 #import "../AI/AIV2Contracts.h"
 #import "../GlassSupport.h"
+#import "../DXTheme.h"
 #import <CoreImage/CoreImage.h>
 @interface DXDAVProjects : UITableViewController
 @property NSArray *projects;
@@ -9,11 +10,11 @@
 @property(copy) void (^selection)(NSDictionary *);
 @end
 @implementation DXDAVProjects
-- (void)viewDidLoad{[super viewDidLoad];self.title=@"WebDAV 共享项目";self.navigationItem.leftBarButtonItem=[[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(close)];}
+- (void)viewDidLoad{[super viewDidLoad];DXStyleTableAsCards(self.tableView);self.title=@"WebDAV 共享项目";self.navigationItem.leftBarButtonItem=[[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(close)];}
 - (void)close{[self dismissViewControllerAnimated:YES completion:nil];}
 - (NSInteger)tableView:(UITableView *)t numberOfRowsInSection:(NSInteger)s{return self.projects.count;}
 - (NSString *)tableView:(UITableView *)t titleForFooterInSection:(NSInteger)s{return @"仅共享选定项目。选择后设置读取或读写权限。";}
-- (UITableViewCell *)tableView:(UITableView *)t cellForRowAtIndexPath:(NSIndexPath *)i{NSDictionary *p=self.projects[i.row];UITableViewCell *c=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil];c.textLabel.text=p[@"name"];c.textLabel.numberOfLines=0;c.imageView.image=[UIImage systemImageNamed:@"folder"];c.accessoryType=[p[@"id"] isEqual:self.selected]?UITableViewCellAccessoryCheckmark:UITableViewCellAccessoryNone;return c;}
+- (UITableViewCell *)tableView:(UITableView *)t cellForRowAtIndexPath:(NSIndexPath *)i{NSDictionary *p=self.projects[i.row];UITableViewCell *c=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil];c.backgroundColor=DXSurfaceColor();c.textLabel.text=p[@"name"];c.textLabel.numberOfLines=0;c.imageView.image=[UIImage systemImageNamed:@"folder"];c.accessoryType=[p[@"id"] isEqual:self.selected]?UITableViewCellAccessoryCheckmark:UITableViewCellAccessoryNone;return c;}
 - (void)tableView:(UITableView *)t didSelectRowAtIndexPath:(NSIndexPath *)i{NSDictionary *p=self.projects[i.row];void(^selection)(NSDictionary *)=self.selection;[self dismissViewControllerAnimated:YES completion:^{if(selection)selection(p);}];}
 @end
 @interface DXRemoteSettings : UITableViewController
@@ -21,7 +22,7 @@
 @property NSTimer *timer;
 @end
 @implementation DXRemoteSettings
-- (void)viewDidLoad{[super viewDidLoad];self.title=@"远程连接";self.tableView.rowHeight=UITableViewAutomaticDimension;self.tableView.estimatedRowHeight=64;[self tick];}
+- (void)viewDidLoad{[super viewDidLoad];self.title=@"远程连接";DXStyleTableAsCards(self.tableView);self.tableView.rowHeight=UITableViewAutomaticDimension;self.tableView.estimatedRowHeight=64;[self tick];}
 - (void)viewWillAppear:(BOOL)animated{[super viewWillAppear:animated];self.timer=[NSTimer timerWithTimeInterval:1 target:self selector:@selector(tick) userInfo:nil repeats:YES];[[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];}
 - (void)viewWillDisappear:(BOOL)animated{[super viewWillDisappear:animated];[self.timer invalidate];self.timer=nil;}
 - (NSString *)codeDetail{
@@ -46,7 +47,7 @@
  return nil;
 }
 - (UITableViewCell *)tableView:(UITableView *)table cellForRowAtIndexPath:(NSIndexPath *)index{
- UITableViewCell *c=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil];c.textLabel.font=[UIFont preferredFontForTextStyle:UIFontTextStyleBody];c.detailTextLabel.numberOfLines=0;c.textLabel.numberOfLines=0;c.detailTextLabel.textColor=UIColor.secondaryLabelColor;
+ UITableViewCell *c=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil];c.textLabel.font=[UIFont preferredFontForTextStyle:UIFontTextStyleBody];c.detailTextLabel.numberOfLines=0;c.textLabel.numberOfLines=0;c.backgroundColor=DXSurfaceColor();c.detailTextLabel.textColor=DXSecondaryLabelColor();
  BOOL running=[self.snapshot[@"state"] isEqual:@"running"],starting=[self.snapshot[@"state"] isEqual:@"starting"];
  if(index.section==0){
   c.textLabel.text=@[@"HTTP 服务",@"当前状态",@"当前访问 IP",@"HTTP 端口",@"在线设备",@"连接方式"][index.row];c.imageView.image=[UIImage systemImageNamed:@[@"network",@"circle.dotted",@"wifi",@"number",@"desktopcomputer",@"point.3.connected.trianglepath.dotted"][index.row]];
@@ -99,7 +100,7 @@
  if(index.section==1){
   if(index.row==0){NSString *url=[self accessURL];if(!url.length)return;
    CIFilter *filter=[CIFilter filterWithName:@"CIQRCodeGenerator"];[filter setValue:[url dataUsingEncoding:NSUTF8StringEncoding] forKey:@"inputMessage"];CIImage *image=[filter.outputImage imageByApplyingTransform:CGAffineTransformMakeScale(8,8)];UIImageView *qr=[[UIImageView alloc]initWithImage:[UIImage imageWithCIImage:image]];qr.layer.magnificationFilter=kCAFilterNearest;qr.contentMode=UIViewContentModeScaleAspectFit;qr.backgroundColor=UIColor.whiteColor;
-   UIViewController *page=[UIViewController new];page.title=@"扫码访问";page.view.backgroundColor=UIColor.systemGroupedBackgroundColor;UILabel *label=[UILabel new];label.text=url;label.numberOfLines=0;label.textAlignment=NSTextAlignmentCenter;label.font=[UIFont preferredFontForTextStyle:UIFontTextStyleBody];UIStackView *stack=[[UIStackView alloc]initWithArrangedSubviews:@[qr,label]];stack.axis=UILayoutConstraintAxisVertical;stack.spacing=24;stack.translatesAutoresizingMaskIntoConstraints=NO;[page.view addSubview:stack];NSLayoutConstraint *idealWidth=[stack.widthAnchor constraintEqualToAnchor:page.view.widthAnchor multiplier:.78];idealWidth.priority=UILayoutPriorityDefaultHigh;[NSLayoutConstraint activateConstraints:@[[stack.centerXAnchor constraintEqualToAnchor:page.view.centerXAnchor],[stack.centerYAnchor constraintEqualToAnchor:page.view.safeAreaLayoutGuide.centerYAnchor],idealWidth,[stack.widthAnchor constraintLessThanOrEqualToAnchor:page.view.safeAreaLayoutGuide.heightAnchor multiplier:.65],[qr.heightAnchor constraintEqualToAnchor:qr.widthAnchor]]];[self.navigationController pushViewController:page animated:YES];
+   UIViewController *page=[UIViewController new];page.title=@"扫码访问";page.view.backgroundColor=DXBackgroundColor();UILabel *label=[UILabel new];label.text=url;label.numberOfLines=0;label.textAlignment=NSTextAlignmentCenter;label.font=[UIFont preferredFontForTextStyle:UIFontTextStyleBody];UIStackView *stack=[[UIStackView alloc]initWithArrangedSubviews:@[qr,label]];stack.axis=UILayoutConstraintAxisVertical;stack.spacing=24;stack.translatesAutoresizingMaskIntoConstraints=NO;[page.view addSubview:stack];NSLayoutConstraint *idealWidth=[stack.widthAnchor constraintEqualToAnchor:page.view.widthAnchor multiplier:.78];idealWidth.priority=UILayoutPriorityDefaultHigh;[NSLayoutConstraint activateConstraints:@[[stack.centerXAnchor constraintEqualToAnchor:page.view.centerXAnchor],[stack.centerYAnchor constraintEqualToAnchor:page.view.safeAreaLayoutGuide.centerYAnchor],idealWidth,[stack.widthAnchor constraintLessThanOrEqualToAnchor:page.view.safeAreaLayoutGuide.heightAnchor multiplier:.65],[qr.heightAnchor constraintEqualToAnchor:qr.widthAnchor]]];[self.navigationController pushViewController:page animated:YES];
   }else if(index.row==1){NSString *url=[self accessURL];if(url.length){UIPasteboard.generalPasteboard.string=url;[self message:@"已复制" text:url];}}
   else if(index.row==2){UIAlertController *a=[UIAlertController alertControllerWithTitle:@"配对码" message:@"随机码为 5 分钟内一次有效。固定码存入钥匙串并长期有效，可随时更换。" preferredStyle:UIAlertControllerStyleAlert];[a addAction:[UIAlertAction actionWithTitle:@"生成随机码" style:UIAlertActionStyleDefault handler:^(id x){[DXRemoteService.shared rotateCode];}]];[a addTextFieldWithConfigurationHandler:^(UITextField *f){f.keyboardType=UIKeyboardTypeNumberPad;f.placeholder=@"固定数字（6–12 位）";}];[a addAction:[UIAlertAction actionWithTitle:@"使用固定码" style:UIAlertActionStyleDefault handler:^(id x){[DXRemoteService.shared setFixedCode:a.textFields.firstObject.text?:@""];}]];[a addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];[self presentViewController:a animated:YES completion:nil];}
   else{UIAlertController *a=[UIAlertController alertControllerWithTitle:@"断开所有设备？" message:@"撤销全部授权，所有浏览器需要重新配对。已知固定码仍可重连，必要时请同时更换配对码。" preferredStyle:UIAlertControllerStyleAlert];[a addAction:[UIAlertAction actionWithTitle:@"断开" style:UIAlertActionStyleDestructive handler:^(id action){[DXRemoteService.shared revoke:nil];}]];[a addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];[self presentViewController:a animated:YES completion:nil];}
