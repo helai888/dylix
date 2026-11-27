@@ -1,4 +1,5 @@
 #import "TFAICodeBlock.h"
+#import "../../DXTheme.h"
 // Native, reusable code surfaces avoid launching a WebContent process during a stream.
 // Tokenization is Foundation-only and prewarmed on the chat parsing queue.
 NSArray *TFAICodeTokens(NSString *source){
@@ -18,7 +19,7 @@ NSArray *TFAICodeTokens(NSString *source){
 @end
 @implementation TFAICodeCard
 - (instancetype)initWithSource:(NSString *)source language:(NSString *)language{
- if((self=[super initWithFrame:CGRectZero])){self.backgroundColor=UIColor.secondarySystemBackgroundColor;self.layer.cornerRadius=12;self.clipsToBounds=YES;
+ if((self=[super initWithFrame:CGRectZero])){self.backgroundColor=DXCodeFillColor();self.layer.cornerRadius=12;self.clipsToBounds=YES;
  self.languageLabel=[UILabel new];self.languageLabel.font=[UIFont monospacedSystemFontOfSize:11 weight:UIFontWeightMedium];self.languageLabel.textColor=UIColor.secondaryLabelColor;self.languageLabel.translatesAutoresizingMaskIntoConstraints=NO;[self addSubview:self.languageLabel];
  self.clipboardButton=[UIButton buttonWithType:UIButtonTypeSystem];UIButtonConfiguration *c=UIButtonConfiguration.plainButtonConfiguration;c.image=[UIImage systemImageNamed:@"doc.on.doc"];c.preferredSymbolConfigurationForImage=[UIImageSymbolConfiguration configurationWithPointSize:13 weight:UIImageSymbolWeightRegular];c.baseForegroundColor=UIColor.secondaryLabelColor;self.clipboardButton.configuration=c;self.clipboardButton.accessibilityLabel=@"复制代码";self.clipboardButton.translatesAutoresizingMaskIntoConstraints=NO;[self.clipboardButton addTarget:self action:@selector(copyCode) forControlEvents:UIControlEventTouchUpInside];[self addSubview:self.clipboardButton];
  self.scroll=[UIScrollView new];self.scroll.translatesAutoresizingMaskIntoConstraints=NO;self.scroll.directionalLockEnabled=YES;self.scroll.delegate=self;self.scroll.accessibilityLabel=@"代码，可横向与纵向滚动";[self addSubview:self.scroll];
