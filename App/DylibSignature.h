@@ -68,3 +68,54 @@ static BOOL TMCValidateDylibSignature(NSData *data, NSError **error) {
     if (message && error) *error=[NSError errorWithDomain:@"Dylix.Signature" code:1 userInfo:@{NSLocalizedDescriptionKey:message}];
     return message==nil;
 }
+static BOOL TMCFixDataConstReadOnly(NSMutableData *data) {
+    if (data.length < sizeof(struct mach_header_64)) return NO;
+    struct mach_header_64 h; memcpy(&h, data.bytes, sizeof(h));
+    if (h.magic != MH_MAGIC_64 || h.sizeofcmds > data.length-sizeof(h)) return NO;
+    const uint8_t *bytes = data.bytes;
+    NSUInteger offset=sizeof(h), end=offset+h.sizeofcmds, flagsOffset=0;
+    struct linkedit_data_command sig={0}; BOOL found=NO, already=NO, hasSig=NO;
+    for (uint32_t i=0;i<h.ncmds;i++) {
+        if (offset>end || end-offset<sizeof(struct load_command)) return NO;
+        struct load_command c; memcpy(&c,bytes+offset,sizeof(c));
+        if (c.cmdsize<8 || c.cmdsize>end-offset) return NO;
+        if (c.cmd==LC_SEGMENT_64 && c.cmdsize>=sizeof(struct segment_command_64)) {
+            struct segment_command_64 s; memcpy(&s,bytes+offset,sizeof(s));
+            if (!strncmp(s.segname,"__DATA_CONST",sizeof(s.segname))) { found=YES; already=(s.flags&SG_READ_ONLY)!=0; flagsOffset=offset+offsetof(struct segment_command_64,flags); }
+        }
+        if (c.cmd==LC_CODE_SIGNATURE && c.cmdsize>=sizeof(sig)) { memcpy(&sig,bytes+offset,sizeof(sig)); hasSig=YES; }
+        offset+=c.cmdsize;
+    }
+    if (!found || already || !flagsOffset) return NO;
+    uint32_t flags; memcpy(&flags,bytes+flagsOffset,sizeof(flags)); flags|=SG_READ_ONLY;
+    memcpy(data.mutableBytes+flagsOffset,&flags,sizeof(flags));
+    if (hasSig && sig.dataoff>0 && sig.dataoff<data.length && sig.datasize>=12 && sig.datasize<=data.length-sig.dataoff) {
+        const uint8_t *blob=bytes+sig.dataoff;
+        uint32_t count=TMCSigBE32(blob+8);
+        if (TMCSigBE32(blob)==0xfade0cc0 && count<=(TMCSigBE32(blob+4)-12)/8) {
+            for (uint32_t i=0;i<count;i++) {
+                uint32_t slot=TMCSigBE32(blob+12+i*8), start=TMCSigBE32(blob+16+i*8);
+                if (slot!=0 && !(slot>=0x1000 && slot<=0x1005)) continue;
+                if (start>sig.datasize || sig.datasize-start<64) continue;
+                const uint8_t *cd=blob+start;
+                if (TMCSigBE32(cd)!=0xfade0c02) continue;
+                uint32_t version=TMCSigBE32(cd+8), hashOffset=TMCSigBE32(cd+16), slots=TMCSigBE32(cd+28);
+                uint64_t limit=TMCSigBE32(cd+32);
+                if (version>=0x20300) { uint64_t large=((uint64_t)TMCSigBE32(cd+56)<<32)|TMCSigBE32(cd+60); if (large) limit=large; }
+                uint8_t hashSize=cd[36], hashType=cd[37], pageLog=cd[39];
+                if (!hashSize || hashSize>64 || !pageLog || pageLog>30) continue;
+                uint64_t page=1ULL<<pageLog, pageIndex=flagsOffset/page;
+                if (pageIndex>=slots) continue;
+                uint64_t begin=pageIndex*page, span=limit>begin?MIN(page,limit-begin):0;
+                unsigned char digest[64]; BOOL ok=YES;
+                if (hashType==1) CC_SHA1(bytes+begin,(CC_LONG)span,digest);
+                else if (hashType==2) CC_SHA256(bytes+begin,(CC_LONG)span,digest);
+                else if (hashType==3) CC_SHA384(bytes+begin,(CC_LONG)span,digest);
+                else if (hashType==4) CC_SHA512(bytes+begin,(CC_LONG)span,digest);
+                else ok=NO;
+                if (ok) memcpy(data.mutableBytes+sig.dataoff+start+hashOffset+pageIndex*hashSize,digest,MIN(hashSize,(uint8_t)sizeof(digest)));
+            }
+        }
+    }
+    return YES;
+}
