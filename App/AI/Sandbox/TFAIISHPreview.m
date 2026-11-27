@@ -2,6 +2,7 @@
 #import "TFAIISHPreview.h"
 #import "TFAIISHRuntime.h"
 #import "../UI/TFAIUIHelpers.h"
+#import "../../DXTheme.h"
 #import <WebKit/WebKit.h>
 
 static NSError *PreviewError(NSString *s){return [NSError errorWithDomain:@"Dylix.Preview" code:1 userInfo:@{NSLocalizedDescriptionKey:s}];}
@@ -71,7 +72,7 @@ static DylixISHWeb *PreviewBrowser(NSString *session,NSString *process){NSMutabl
 @property UILabel *status;
 @end
 @implementation DylixISHPreviewPage
-- (void)viewDidLoad{[super viewDidLoad];self.title=@"本地网页预览";self.view.backgroundColor=UIColor.systemBackgroundColor;self.browser=PreviewBrowser(self.session,self.info[@"process_id"]);self.status=[UILabel new];self.status.font=[UIFont preferredFontForTextStyle:UIFontTextStyleCaption1];self.status.numberOfLines=2;self.status.text=self.info[@"url"];self.status.textColor=UIColor.secondaryLabelColor;
+- (void)viewDidLoad{[super viewDidLoad];self.title=@"本地网页预览";self.view.backgroundColor=DXBackgroundColor();self.browser=PreviewBrowser(self.session,self.info[@"process_id"]);self.status=[UILabel new];self.status.font=[UIFont preferredFontForTextStyle:UIFontTextStyleCaption1];self.status.numberOfLines=2;self.status.text=self.info[@"url"];self.status.textColor=UIColor.secondaryLabelColor;
  WKWebView *web=self.browser.web;for(UIView *v in @[self.status,web]){v.translatesAutoresizingMaskIntoConstraints=NO;[self.view addSubview:v];}
  UILayoutGuide *safe=self.view.safeAreaLayoutGuide;[NSLayoutConstraint activateConstraints:@[[self.status.topAnchor constraintEqualToAnchor:safe.topAnchor constant:6],[self.status.leadingAnchor constraintEqualToAnchor:safe.leadingAnchor constant:12],[self.status.trailingAnchor constraintEqualToAnchor:safe.trailingAnchor constant:-12],[web.topAnchor constraintEqualToAnchor:self.status.bottomAnchor constant:6],[web.leadingAnchor constraintEqualToAnchor:safe.leadingAnchor],[web.trailingAnchor constraintEqualToAnchor:safe.trailingAnchor],[web.bottomAnchor constraintEqualToAnchor:safe.bottomAnchor]]];
  self.navigationItem.rightBarButtonItems=@[AIBar(@"arrow.clockwise",@"刷新",self,@selector(reload)),AIBar(@"square.and.arrow.up",@"分享截图",self,@selector(share))];[self reload];}
