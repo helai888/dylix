@@ -1,5 +1,6 @@
 #import "TFAIAttachmentMenu.h"
 #import "TFAIUIHelpers.h"
+#import "../../DXTheme.h"
 @interface TFAIAttachmentMenuPage : UIViewController
 @property NSDictionary *contexts;
 @property(copy) void(^selection)(NSString *);
@@ -8,11 +9,11 @@
 - (UIButton *)source:(NSString *)title icon:(NSString *)icon key:(NSString *)key {
  BOOL row=[@[@"mounted",@"project",@"classdump",@"selection",@"build_log",@"diagnostics"] containsObject:key];
  UIButton *button=[UIButton buttonWithType:UIButtonTypeSystem];UIButtonConfiguration *config=[UIButtonConfiguration plainButtonConfiguration];config.title=title;config.image=[UIImage systemImageNamed:icon]?:[UIImage systemImageNamed:row?@"folder":@"doc"];config.imagePlacement=row?NSDirectionalRectEdgeLeading:NSDirectionalRectEdgeTop;config.imagePadding=row?14:9;config.baseForegroundColor=UIColor.labelColor;config.contentInsets=NSDirectionalEdgeInsetsMake(12,14,12,14);config.titleTextAttributesTransformer=^NSDictionary *(NSDictionary *a){NSMutableDictionary *v=[a mutableCopy];v[NSFontAttributeName]=[UIFont systemFontOfSize:14 weight:UIFontWeightMedium];return v;};
- if(row){config.subtitle=[key isEqual:@"mounted"]?@"从已授权目录选文件，或附加整个目录引用":[key isEqual:@"selection"]?@"仅在点击后附加当前编辑器选区":[key isEqual:@"classdump"]?@"保存本机附件，发送后让 AI 导出头文件":[key isEqual:@"project"]?@"选择文件，或进入文件夹后点 ✅ 授权目录":@"当前项目的本机编译记录";config.subtitleTextAttributesTransformer=^NSDictionary *(NSDictionary *a){NSMutableDictionary *v=[a mutableCopy];v[NSFontAttributeName]=[UIFont systemFontOfSize:11];v[NSForegroundColorAttributeName]=UIColor.secondaryLabelColor;return v;};button.contentHorizontalAlignment=UIControlContentHorizontalAlignmentLeading;}else{button.backgroundColor=UIColor.secondarySystemBackgroundColor;button.layer.cornerRadius=16;}
+ if(row){config.subtitle=[key isEqual:@"mounted"]?@"从已授权目录选文件，或附加整个目录引用":[key isEqual:@"selection"]?@"仅在点击后附加当前编辑器选区":[key isEqual:@"classdump"]?@"保存本机附件，发送后让 AI 导出头文件":[key isEqual:@"project"]?@"选择文件，或进入文件夹后点 ✅ 授权目录":@"当前项目的本机编译记录";config.subtitleTextAttributesTransformer=^NSDictionary *(NSDictionary *a){NSMutableDictionary *v=[a mutableCopy];v[NSFontAttributeName]=[UIFont systemFontOfSize:11];v[NSForegroundColorAttributeName]=UIColor.secondaryLabelColor;return v;};button.contentHorizontalAlignment=UIControlContentHorizontalAlignmentLeading;}else{DXApplyCardStyle(button,16);}
  button.configuration=config;button.accessibilityIdentifier=[@"attachment-source-" stringByAppendingString:key];button.accessibilityLabel=title;[button addAction:[UIAction actionWithHandler:^(UIAction *a){void(^select)(NSString *)=self.selection;[self dismissViewControllerAnimated:YES completion:^{if(select)select(key);}];}] forControlEvents:UIControlEventTouchUpInside];[button.heightAnchor constraintEqualToConstant:row?62:78].active=YES;return button;
 }
 - (void)viewDidLoad {
- [super viewDidLoad];self.title=@"添加附件";self.view.backgroundColor=UIColor.systemBackgroundColor;self.navigationItem.rightBarButtonItem=AIBar(@"xmark",@"关闭",self,@selector(close));
+ [super viewDidLoad];self.title=@"添加附件";self.view.backgroundColor=DXBackgroundColor();self.navigationItem.rightBarButtonItem=AIBar(@"xmark",@"关闭",self,@selector(close));
  UIStackView *media=[[UIStackView alloc]initWithArrangedSubviews:@[[self source:@"照片" icon:@"photo" key:@"photo"],[self source:@"相机" icon:@"camera" key:@"camera"],[self source:@"文件" icon:@"doc" key:@"file"]]];media.distribution=UIStackViewDistributionFillEqually;media.spacing=8;
  UIStackView *stack=[[UIStackView alloc]initWithArrangedSubviews:@[media,[self source:@"项目文件与文件夹" icon:@"folder" key:@"project"]]];stack.axis=UILayoutConstraintAxisVertical;[stack addArrangedSubview:[self source:@"挂载文件夹" icon:@"folder.badge.gearshape" key:@"mounted"]];stack.spacing=10;[stack addArrangedSubview:[self source:@"IPA 头文件" icon:@"doc.text.magnifyingglass" key:@"classdump"]];
  if([self.contexts[@"selection"] boolValue])[stack addArrangedSubview:[self source:@"所选代码" icon:@"text.cursor" key:@"selection"]];
