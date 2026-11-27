@@ -1,4 +1,5 @@
 #import "GitDiffView.h"
+#import "DXTheme.h"
 #import <WebKit/WebKit.h>
 #import <git2.h>
 
@@ -34,12 +35,12 @@ static NSString *DisplayPatchHeader(NSString *line) {
     [super viewDidLoad];
     NSInteger theme=[NSUserDefaults.standardUserDefaults integerForKey:@"StudioTheme"];
     self.overrideUserInterfaceStyle=theme==1?UIUserInterfaceStyleDark:theme==2?UIUserInterfaceStyleLight:UIUserInterfaceStyleUnspecified;
-    self.view.backgroundColor=UIColor.systemBackgroundColor;
+    self.view.backgroundColor=DXBackgroundColor();
     WKWebViewConfiguration *config=[WKWebViewConfiguration new];
     config.websiteDataStore=WKWebsiteDataStore.nonPersistentDataStore;
     self.web=[[WKWebView alloc] initWithFrame:CGRectZero configuration:config];
     self.web.navigationDelegate=self; self.web.translatesAutoresizingMaskIntoConstraints=NO;
-    self.web.opaque=NO; self.web.backgroundColor=UIColor.systemBackgroundColor;
+    self.web.opaque=NO; self.web.backgroundColor=DXBackgroundColor();
     self.web.scrollView.contentInsetAdjustmentBehavior=UIScrollViewContentInsetAdjustmentNever;
     [self.view addSubview:self.web];
     [NSLayoutConstraint activateConstraints:@[
