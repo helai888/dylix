@@ -1,4 +1,5 @@
 #import "DXAppUpdate.h"
+#import "../../DXTheme.h"
 #import <WebKit/WebKit.h>
 @interface DXUpdateWebsite : UIViewController <WKNavigationDelegate>
 @property WKWebView *web;
@@ -6,7 +7,7 @@
 @property UILabel *status;
 @end
 @implementation DXUpdateWebsite
-- (void)viewDidLoad{[super viewDidLoad];self.title=@"获取 Dylix";self.view.backgroundColor=UIColor.systemBackgroundColor;WKWebViewConfiguration *config=[WKWebViewConfiguration new];config.websiteDataStore=WKWebsiteDataStore.nonPersistentDataStore;self.web=[[WKWebView alloc]initWithFrame:CGRectZero configuration:config];self.web.navigationDelegate=self;self.web.translatesAutoresizingMaskIntoConstraints=NO;[self.view addSubview:self.web];[NSLayoutConstraint activateConstraints:@[[self.web.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor],[self.web.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],[self.web.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],[self.web.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]]];self.navigationItem.rightBarButtonItem=[[UIBarButtonItem alloc]initWithTitle:@"重新加载" style:UIBarButtonItemStylePlain target:self action:@selector(reload)];[self reload];}
+- (void)viewDidLoad{[super viewDidLoad];self.title=@"获取 Dylix";self.view.backgroundColor=DXBackgroundColor();WKWebViewConfiguration *config=[WKWebViewConfiguration new];config.websiteDataStore=WKWebsiteDataStore.nonPersistentDataStore;self.web=[[WKWebView alloc]initWithFrame:CGRectZero configuration:config];self.web.navigationDelegate=self;self.web.translatesAutoresizingMaskIntoConstraints=NO;[self.view addSubview:self.web];[NSLayoutConstraint activateConstraints:@[[self.web.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor],[self.web.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],[self.web.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],[self.web.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]]];self.navigationItem.rightBarButtonItem=[[UIBarButtonItem alloc]initWithTitle:@"重新加载" style:UIBarButtonItemStylePlain target:self action:@selector(reload)];[self reload];}
 - (void)reload{self.opened=NO;[self.web loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"https://dylib.cn/"]]];}
 - (void)webView:(WKWebView *)web didFinishNavigation:(WKNavigation *)navigation{
  if(self.opened||![web.URL.host.lowercaseString isEqual:@"dylib.cn"]||![web.URL.scheme isEqual:@"https"])return;self.opened=YES;
