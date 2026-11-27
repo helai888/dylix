@@ -2,6 +2,7 @@
 #import "TFAIUIHelpers.h"
 #import "../Providers/TFAIProtocol.h"
 #import "../Providers/TFAIRegistry.h"
+#import "../../DXTheme.h"
 static NSString *TFProbeTitle(NSString *key){return @{@"text":@"文本响应",@"stream":@"流式响应",@"image":@"图片理解",@"tools":@"工具调用",@"thinking":@"深度思考"}[key]?:@"能力测试";}
 static NSString *TFProbeState(NSString *state){return @{@"pass":@"✅ 本次验证通过",@"fail":@"❌ 本次请求失败",@"unknown":@"⚠️ 本次未证实",@"running":@"正在测试",@"pending":@"尚未测试"}[state]?:@"尚未测试";}
 NSDictionary *TFAIRecordProbeResult(NSMutableDictionary *connection,NSString *capability,NSDictionary *result,NSError *error){
@@ -34,7 +35,7 @@ NSString *TFAIProbeReport(NSDictionary *record,NSString *capability){
 @property BOOL busy,allowRetest;
 @end
 @implementation TFAITestDetail
-- (void)viewDidLoad{[super viewDidLoad];self.title=TFProbeTitle(self.capability);self.tableView.rowHeight=UITableViewAutomaticDimension;self.tableView.estimatedRowHeight=90;self.navigationItem.rightBarButtonItems=@[AIBar(@"doc.on.doc",@"复制完整测试结果",self,@selector(copyReport)),AIBar(@"arrow.clockwise",@"重新测试此项",self,@selector(retest))];self.navigationItem.rightBarButtonItems.lastObject.enabled=self.allowRetest;[NSNotificationCenter.defaultCenter addObserver:self selector:@selector(probeChanged:) name:@"TFAIProbeResultChanged" object:nil];[self rebuild];}
+- (void)viewDidLoad{[super viewDidLoad];self.title=TFProbeTitle(self.capability);self.tableView.rowHeight=UITableViewAutomaticDimension;self.tableView.estimatedRowHeight=90;DXStyleTableAsCards(self.tableView);self.navigationItem.rightBarButtonItems=@[AIBar(@"doc.on.doc",@"复制完整测试结果",self,@selector(copyReport)),AIBar(@"arrow.clockwise",@"重新测试此项",self,@selector(retest))];self.navigationItem.rightBarButtonItems.lastObject.enabled=self.allowRetest;[NSNotificationCenter.defaultCenter addObserver:self selector:@selector(probeChanged:) name:@"TFAIProbeResultChanged" object:nil];[self rebuild];}
 - (void)dealloc{[NSNotificationCenter.defaultCenter removeObserver:self];}
 - (void)probeChanged:(NSNotification *)note{if([note.object isEqual:self.connection[@"id"]]&&[note.userInfo[@"capability"] isEqual:self.capability]){self.record=note.userInfo[@"record"];[self rebuild];}}
 - (void)rebuild{
@@ -50,7 +51,7 @@ NSString *TFAIProbeReport(NSDictionary *record,NSString *capability){
 - (NSString *)tableView:(UITableView *)t titleForHeaderInSection:(NSInteger)s{return @[@"测试结果",@"内置测试样例",@"响应与判定"][s];}
 - (NSString *)tableView:(UITableView *)t titleForFooterInSection:(NSInteger)s{return s==2?@"结果只反映本次请求。服务路由、图片格式、提示词和模型实际输出均会影响结论。长按文字可选中复制，也可用右上角复制完整结果。":nil;}
 - (UITableViewCell *)tableView:(UITableView *)t cellForRowAtIndexPath:(NSIndexPath *)i{
- NSDictionary *row=self.sections[i.section][i.row];UITableViewCell *c=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];c.selectionStyle=UITableViewCellSelectionStyleNone;
+ NSDictionary *row=self.sections[i.section][i.row];UITableViewCell *c=[[UITableViewCell alloc]initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];c.selectionStyle=UITableViewCellSelectionStyleNone;c.backgroundColor=DXSurfaceColor();
  UIStackView *stack=[UIStackView new];stack.axis=UILayoutConstraintAxisVertical;stack.spacing=8;stack.translatesAutoresizingMaskIntoConstraints=NO;[c.contentView addSubview:stack];UILabel *title=[UILabel new];title.text=row[@"title"];title.font=[UIFont preferredFontForTextStyle:UIFontTextStyleCaption1];title.textColor=UIColor.secondaryLabelColor;title.numberOfLines=0;[stack addArrangedSubview:title];
  if(row[@"image"]){NSString *encoded=[row[@"image"] isKindOfClass:NSString.class]?row[@"image"]:nil;if([encoded hasPrefix:@"data:"])encoded=[encoded componentsSeparatedByString:@","].lastObject;NSData *data=[[NSData alloc]initWithBase64EncodedString:encoded?:@"" options:0];UIImageView *image=[[UIImageView alloc]initWithImage:[UIImage imageWithData:data]];image.contentMode=UIViewContentModeScaleAspectFit;[image.heightAnchor constraintEqualToConstant:170].active=YES;image.accessibilityLabel=@"发送给模型的内置测试图片";[stack addArrangedSubview:image];}
  else {UITextView *text=[UITextView new];text.editable=NO;text.scrollEnabled=NO;text.backgroundColor=UIColor.clearColor;text.textContainerInset=UIEdgeInsetsZero;text.textContainer.lineFragmentPadding=0;text.text=row[@"text"];text.font=[row[@"mono"] boolValue]?[UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular]:[UIFont preferredFontForTextStyle:UIFontTextStyleSubheadline];text.textColor=UIColor.labelColor;[stack addArrangedSubview:text];}
