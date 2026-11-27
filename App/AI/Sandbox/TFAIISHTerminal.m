@@ -11,6 +11,7 @@
 #import "TFAIISHRuntime.h"
 #import "TFAIISHExports.h"
 #import "../UI/TFAIUIHelpers.h"
+#import "../../DXTheme.h"
 #import <WebKit/WebKit.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
@@ -36,16 +37,16 @@
 @end
 @implementation DylixTerminalPage
 - (void)viewDidLoad{
- [super viewDidLoad];if(self.projectRoot!=nil)[TFAIISHRuntime.shared configureProject:self.projectRoot session:self.session];self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;self.title=self.processID?[NSString stringWithFormat:@"Linux 进程 · %@",[self.processID substringToIndex:MIN(8,self.processID.length)]]:@"Linux 终端";self.view.backgroundColor=[UIColor colorWithRed:16/255.0 green:20/255.0 blue:28/255.0 alpha:1];self.pending=[NSMutableData new];
+ [super viewDidLoad];if(self.projectRoot!=nil)[TFAIISHRuntime.shared configureProject:self.projectRoot session:self.session];self.overrideUserInterfaceStyle=UIUserInterfaceStyleDark;self.title=self.processID?[NSString stringWithFormat:@"Linux 进程 · %@",[self.processID substringToIndex:MIN(8,self.processID.length)]]:@"Linux 终端";self.view.backgroundColor=DXHex(0x10141C,0x10141C);self.pending=[NSMutableData new];
  UINavigationBarAppearance *bar=[UINavigationBarAppearance new];[bar configureWithOpaqueBackground];bar.backgroundColor=self.view.backgroundColor;bar.titleTextAttributes=@{NSForegroundColorAttributeName:UIColor.whiteColor};self.navigationItem.standardAppearance=bar;self.navigationItem.scrollEdgeAppearance=bar;self.navigationItem.compactAppearance=bar;
  self.navigationItem.rightBarButtonItems=@[AIBar(@"ellipsis.circle",@"终端操作",self,@selector(menu))];
- self.status=[UILabel new];self.status.text=@"Alpine Linux · 正在准备";self.status.textColor=UIColor.secondaryLabelColor;self.status.font=[UIFont preferredFontForTextStyle:UIFontTextStyleCaption1];self.status.adjustsFontForContentSizeCategory=YES;self.status.numberOfLines=2;
- self.bindingLabel=[UILabel new];self.bindingLabel.font=[UIFont preferredFontForTextStyle:UIFontTextStyleCaption1];self.bindingLabel.textColor=UIColor.labelColor;self.bindingLabel.numberOfLines=2;self.bindingLabel.adjustsFontForContentSizeCategory=YES;self.bindingLabel.accessibilityIdentifier=@"terminal.binding";
- self.directoryLabel=[UILabel new];self.directoryLabel.font=[UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular];self.directoryLabel.textColor=UIColor.secondaryLabelColor;self.directoryLabel.lineBreakMode=NSLineBreakByTruncatingMiddle;self.directoryLabel.accessibilityIdentifier=@"terminal.cwd";
+ self.status=[UILabel new];self.status.text=@"Alpine Linux · 正在准备";self.status.textColor=DXSecondaryLabelColor();self.status.font=[UIFont preferredFontForTextStyle:UIFontTextStyleCaption1];self.status.adjustsFontForContentSizeCategory=YES;self.status.numberOfLines=2;
+ self.bindingLabel=[UILabel new];self.bindingLabel.font=[UIFont preferredFontForTextStyle:UIFontTextStyleCaption1];self.bindingLabel.textColor=DXLabelColor();self.bindingLabel.numberOfLines=2;self.bindingLabel.adjustsFontForContentSizeCategory=YES;self.bindingLabel.accessibilityIdentifier=@"terminal.binding";
+ self.directoryLabel=[UILabel new];self.directoryLabel.font=[UIFont monospacedSystemFontOfSize:12 weight:UIFontWeightRegular];self.directoryLabel.textColor=DXSecondaryLabelColor();self.directoryLabel.lineBreakMode=NSLineBreakByTruncatingMiddle;self.directoryLabel.accessibilityIdentifier=@"terminal.cwd";
  UIStackView *context=[[UIStackView alloc]initWithArrangedSubviews:@[self.bindingLabel,self.directoryLabel]];context.axis=UILayoutConstraintAxisVertical;context.spacing=3;context.accessibilityIdentifier=@"terminal.context";context.userInteractionEnabled=YES;[context addGestureRecognizer:[[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(bindingInfo)]];
  WKWebViewConfiguration *configuration=[WKWebViewConfiguration new];configuration.websiteDataStore=WKWebsiteDataStore.nonPersistentDataStore;DylixTerminalMessages *handler=[DylixTerminalMessages new];handler.owner=self;[configuration.userContentController addScriptMessageHandler:handler name:@"dylixTerminal"];
  self.web=[[WKWebView alloc]initWithFrame:CGRectZero configuration:configuration];self.web.navigationDelegate=self;self.web.opaque=NO;self.web.backgroundColor=self.view.backgroundColor;self.web.scrollView.scrollEnabled=NO;
- UIView *keys=[UIView new];keys.backgroundColor=[UIColor colorWithWhite:0.09 alpha:1];
+ UIView *keys=[UIView new];keys.backgroundColor=DXSurfaceColor();
  UIScrollView *scroll=[UIScrollView new];scroll.showsHorizontalScrollIndicator=YES;scroll.alwaysBounceHorizontal=YES;scroll.accessibilityLabel=@"终端快捷键，左右滑动查看更多";
  UIStackView *row=[UIStackView new];row.axis=UILayoutConstraintAxisHorizontal;row.spacing=5;row.alignment=UIStackViewAlignmentCenter;
  [keys addSubview:scroll];[scroll addSubview:row];scroll.translatesAutoresizingMaskIntoConstraints=NO;row.translatesAutoresizingMaskIntoConstraints=NO;
@@ -67,7 +68,7 @@
  [self.web loadFileURL:url allowingReadAccessToURL:url.URLByDeletingLastPathComponent];
 }
 - (UIButton *)shortcutButton:(NSString *)title key:(NSString *)key{
- UIButton *b=[UIButton buttonWithType:UIButtonTypeSystem];b.accessibilityIdentifier=[@"terminal.key." stringByAppendingString:key];b.accessibilityLabel=title;b.titleLabel.font=[UIFont monospacedSystemFontOfSize:13 weight:UIFontWeightMedium];b.layer.cornerRadius=7;b.backgroundColor=[UIColor colorWithWhite:0.16 alpha:1];[b setTitle:title forState:UIControlStateNormal];[b setTitleColor:[UIColor colorWithWhite:0.92 alpha:1] forState:UIControlStateNormal];b.translatesAutoresizingMaskIntoConstraints=NO;[NSLayoutConstraint activateConstraints:@[[b.widthAnchor constraintGreaterThanOrEqualToConstant:48],[b.heightAnchor constraintEqualToConstant:44]]];b.contentEdgeInsets=UIEdgeInsetsMake(0,9,0,9);
+ UIButton *b=[UIButton buttonWithType:UIButtonTypeSystem];b.accessibilityIdentifier=[@"terminal.key." stringByAppendingString:key];b.accessibilityLabel=title;b.titleLabel.font=[UIFont monospacedSystemFontOfSize:13 weight:UIFontWeightMedium];b.layer.cornerRadius=7;b.backgroundColor=DXSurfaceMutedColor();[b setTitle:title forState:UIControlStateNormal];[b setTitleColor:DXLabelColor() forState:UIControlStateNormal];b.translatesAutoresizingMaskIntoConstraints=NO;[NSLayoutConstraint activateConstraints:@[[b.widthAnchor constraintGreaterThanOrEqualToConstant:48],[b.heightAnchor constraintEqualToConstant:44]]];b.contentEdgeInsets=UIEdgeInsetsMake(0,9,0,9);
  __weak typeof(self) weak=self;[b addAction:[UIAction actionWithHandler:^(UIAction *a){[weak shortcut:key];}] forControlEvents:UIControlEventTouchUpInside];return b;
 }
 - (void)shortcut:(NSString *)key{
@@ -80,7 +81,7 @@
  [self.web evaluateJavaScript:[NSString stringWithFormat:@"window.%@(%@[0])",method,arg] completionHandler:nil];
 }
 - (void)updateModifiers:(NSDictionary *)value{
- for(NSArray *pair in @[@[self.ctrlButton,@"ctrl"],@[self.altButton,@"alt"]]){UIButton *b=pair[0];BOOL active=[value[pair[1]] boolValue];b.selected=active;b.accessibilityValue=active?@"已启用，下一次按键生效":@"关闭";b.accessibilityTraits=UIAccessibilityTraitButton|(active?UIAccessibilityTraitSelected:0);b.backgroundColor=active?[UIColor colorWithRed:0.18 green:0.39 blue:0.6 alpha:1]:[UIColor colorWithWhite:0.16 alpha:1];}
+ for(NSArray *pair in @[@[self.ctrlButton,@"ctrl"],@[self.altButton,@"alt"]]){UIButton *b=pair[0];BOOL active=[value[pair[1]] boolValue];b.selected=active;b.accessibilityValue=active?@"已启用，下一次按键生效":@"关闭";b.accessibilityTraits=UIAccessibilityTraitButton|(active?UIAccessibilityTraitSelected:0);b.backgroundColor=active?DXHex(0x4B67B4,0x4B67B4):DXSurfaceMutedColor();}
 }
 - (UIStatusBarStyle)preferredStatusBarStyle{return UIStatusBarStyleLightContent;}
 - (void)dealloc{[self.contextTimer invalidate];[NSNotificationCenter.defaultCenter removeObserver:self];[self.web.configuration.userContentController removeScriptMessageHandlerForName:@"dylixTerminal"];}
