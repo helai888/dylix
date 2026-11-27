@@ -19,6 +19,7 @@
 #import "DebPackage.h"
 #import "PackageLinking.h"
 #import "DylibSignature.h"
+#import "DXTheme.h"
 #import "OutputNaming.h"
 #import "ArchiveImport.h"
 #import "SDKResources.h"
@@ -200,7 +201,7 @@ extern UIViewController *TMCStorageBackup258Regression(void);
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)index {
     NSDictionary *project=self.projects[index.row];UITableViewCell *cell=[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil];
     cell.textLabel.text=project[@"name"];cell.detailTextLabel.text=[NSString stringWithFormat:@"%@ · %@ 个源码",project[@"relative"],project[@"sources"]];cell.detailTextLabel.numberOfLines=2;
-    cell.imageView.image=[UIImage systemImageNamed:@"folder"];cell.imageView.tintColor=UIColor.systemOrangeColor;cell.accessoryType=UITableViewCellAccessoryDisclosureIndicator;return cell;
+    cell.imageView.image=[UIImage systemImageNamed:@"folder"];cell.imageView.tintColor=DXBrandColor();cell.accessoryType=UITableViewCellAccessoryDisclosureIndicator;return cell;
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)index {
     [tableView deselectRowAtIndexPath:index animated:YES];if(self.completed)return;self.completed=YES;
@@ -214,7 +215,7 @@ extern UIViewController *TMCStorageBackup258Regression(void);
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"本地编译验证";
-    self.view.backgroundColor = UIColor.systemBackgroundColor;
+    self.view.backgroundColor = DXBackgroundColor();
     self.console = [[UITextView alloc] initWithFrame:self.view.bounds];
     self.console.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.console.font = [UIFont monospacedSystemFontOfSize:13 weight:UIFontWeightRegular];
@@ -917,7 +918,7 @@ extern UIViewController *TMCStorageBackup258Regression(void);
     self.restoringData=YES;
     // Return to UIKit immediately: large restores must not trigger the launch watchdog.
     NSAssert(self.window.windowScene, @"A connected UIWindowScene is required before startup");
-    UIViewController *loading=[UIViewController new];loading.view.backgroundColor=UIColor.systemBackgroundColor;
+    UIViewController *loading=[UIViewController new];loading.view.backgroundColor=DXBackgroundColor();
     UILabel *label=[UILabel new];label.text=@"正在恢复 Dylix 数据，请勿关闭应用";label.font=[UIFont preferredFontForTextStyle:UIFontTextStyleBody];label.translatesAutoresizingMaskIntoConstraints=NO;
     UIActivityIndicatorView *spinner=[[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];spinner.translatesAutoresizingMaskIntoConstraints=NO;[spinner startAnimating];
     [loading.view addSubview:label];[loading.view addSubview:spinner];
@@ -931,7 +932,7 @@ extern UIViewController *TMCStorageBackup258Regression(void);
     TFAINotificationsRegister();[NSNotificationCenter.defaultCenter addObserver:self selector:@selector(openBuildQueueFromNotification:) name:@"TFAIOpenBuildQueue" object:nil];[NSNotificationCenter.defaultCenter addObserver:self selector:@selector(openAIFromNotification:) name:@"TFAIOpenConversation" object:nil];
     [NSUserDefaults.standardUserDefaults registerDefaults:@{@"StudioTheme":@1, @"StudioFont":@14, @"StudioSDKVersion":@"16.4", @"StudioDeploymentTarget":@"15.0"}];
     NSAssert(self.window.windowScene, @"A connected UIWindowScene is required before startup");
-    self.window.tintColor=[UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *trait){return trait.userInterfaceStyle==UIUserInterfaceStyleDark?[UIColor colorWithRed:.93 green:.77 blue:.52 alpha:1]:[UIColor colorWithRed:.45 green:.30 blue:.10 alpha:1];}];
+    self.window.tintColor=DXBrandColor();
     NSString *documents=NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES).firstObject;
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY,0),^{TMCPrepareDocumentPresentation(documents);});
     for(NSString *name in @[@"import.log",@"picker-test.json"])[NSFileManager.defaultManager removeItemAtPath:[documents stringByAppendingPathComponent:name] error:nil];
